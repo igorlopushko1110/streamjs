@@ -79,6 +79,70 @@ module.exports = {
     );
   },
 
-  
-  
+  unfollowMany: function(unfollows, callback) {
+    /**
+     * Unfollow multiple feeds with one API call
+     * @method unfollowMany
+     * @memberof StreamClient.prototype
+     * @since 3.15.0
+     * @param  {Array}   unfollows  The follow relations to remove
+     * @param  {requestCallback} [callback] Callback called on completion
+     * @return {Promise}           Promise object
+     */
+
+    if (!this.usingApiSecret || this.apiKey == null) {
+      throw new errors.SiteError(
+        'This method can only be used server-side using your API Secret',
+      );
+    }
+
+    return this.makeSignedRequest(
+      {
+        url: 'unfollow_many/',
+        body: unfollows,
+      },
+      callback,
+    );
+  },
+
+  makeSignedRequest: function(kwargs, cb) {
+    /**
+     * Method to create request to api with application level authentication
+     * @method makeSignedRequest
+     * @memberof StreamClient.prototype
+     * @since 2.3.0
+     * @access private
+     * @param  {object}   kwargs Arguments for the request
+     * @param  {requestCallback} cb     Callback to call on completion
+     * @return {Promise}         Promise object
+     */
+    if (!this.apiSecret) {
+      throw new errors.SiteError(
+        'Missing secret, which is needed to perform signed requests, use var client = stream.connect(key, secret);',
+      );
+    }
+
+    return new Promise(
+      function(fulfill, reject) {
+        this.send('request', 'post', kwargs, cb);
+
+        kwargs.url = this.enrichUrl(kwargs.url);
+        kwargs.json = true;
+        kwargs.method = 'POST';
+        kwargs.headers = { 'X-Api-Key': this.apiKey };
+        // Make sure withCredentials is not enabled, different browser
+        // fallbacks handle it differently by default (meteor)
+        kwargs.withCredentials = false;
+
+        var callback = this.wrapPromiseTask(cb, fulfill, reject);
+        var req = request(kwargs, callback);
+
+        httpSignature.sign(req, {
+          algorithm: 'hmac-sha256',
+          key: this.apiSecret,
+          keyId: this.apiKey,
+        });
+      }.bind(this),
+    );
+  },
 };
