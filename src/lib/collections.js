@@ -137,6 +137,62 @@ Collections.prototype = {
         return entry;
       });
   },
+  delete: function(collection, entryId, callback) {
+    /**
+     * Delete entry from collection
+     * @method delete
+     * @memberof Collections.prototype
+     * @param  {object}   entryId  Collection entry id
+     * @param  {requestCallback} callback Callback to call on completion
+     * @return {Promise} Promise object
+     * @example collection.delete("food", "cheese101")
+     */
+    return this.client['delete'](
+      {
+        url: this.buildURL(collection, entryId),
+        signature: this.token,
+      },
+      callback,
+    );
+  },
+
+  upsert: function(collection, data, callback) {
+    /**
+     * Upsert one or more items within a collection.
+     *
+     * @method upsert
+     * @memberof Collections.prototype
+     * @param {object|array} data - A single json object or an array of objects
+     * @param {requestCallback} callback - Callback to call on completion
+     * @return {Promise} Promise object.
+     */
+
+    if (!this.client.usingApiSecret) {
+      throw new errors.SiteError(
+        'This method can only be used server-side using your API Secret',
+      );
+    }
+
+    var last = arguments[arguments.length - 1];
+    // callback is always the last argument
+    callback = last.call ? last : undefined;
+
+    if (!Array.isArray(data)) {
+      data = [data];
+    }
+    var data_json = { data: {} };
+    data_json['data'][collection] = data;
+
+    return this.client.post(
+      {
+        url: 'collections/',
+        serviceName: 'api',
+        body: data_json,
+        signature: this.client.getCollectionsToken(),
+      },
+      callback,
+    );
+  },
 
 };
 
