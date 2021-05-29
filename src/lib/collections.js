@@ -193,6 +193,52 @@ Collections.prototype = {
       callback,
     );
   },
+  
+  deleteMany: function(collection, ids, callback) {
+    /**
+     * Remove all objects by id from the collection.
+     *
+     * @method delete
+     * @memberof Collections.prototype
+     * @param {object|array} ids - A single json object or an array of objects
+     * @param {requestCallback} callback - Callback to call on completion
+     * @return {Promise} Promise object.
+     */
+
+    if (!this.client.usingApiSecret) {
+      throw new errors.SiteError(
+        'This method can only be used server-side using your API Secret',
+      );
+    }
+
+    var last = arguments[arguments.length - 1];
+    // callback is always the last argument
+    callback = last.call ? last : undefined;
+
+    if (!Array.isArray(ids)) {
+      ids = [ids];
+    }
+    ids = ids
+      .map(function(id) {
+        return id.toString();
+      })
+      .join(',');
+
+    var params = {
+      collection_name: collection,
+      ids: ids,
+    };
+
+    return this.client.delete(
+      {
+        url: 'collections/',
+        serviceName: 'api',
+        qs: params,
+        signature: this.client.getCollectionsToken(),
+      },
+      callback,
+    );
+  },
 
 };
 
