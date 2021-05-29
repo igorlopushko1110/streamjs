@@ -277,7 +277,26 @@ CollectionEntry.prototype = {
     });
   },
 
-  
+  add: function(callback) {
+    /**
+     * Add item to collection
+     * @method add
+     * @memberof CollectionEntry.prototype
+     * @param  {requestCallback} callback Callback to call on completion
+     * @return {Promise} Promise object
+     * @example collection.add("cheese101", {"name": "cheese burger","toppings": "cheese"})
+     */
+    return this.store
+      .add(this.collection, this.id, this.data)
+      .then((response) => {
+        this.data = response.data;
+        this.full = response;
+        if (callback) {
+          callback(response);
+        }
+        return response;
+      });
+  },
 };
 
 module.exports = Collections;
