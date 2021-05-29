@@ -297,6 +297,29 @@ CollectionEntry.prototype = {
         return response;
       });
   },
+  
+  update: function(callback) {
+    /**
+     * Update item in the object storage
+     * @method update
+     * @memberof CollectionEntry.prototype
+     * @param  {requestCallback} callback Callback to call on completion
+     * @return {Promise} Promise object
+     * @example store.update("0c7db91c-67f9-11e8-bcd9-fe00a9219401", {"name": "cheese burger","toppings": "cheese"})
+     * @example store.update("cheese101", {"name": "cheese burger","toppings": "cheese"})
+     */
+    return this.store
+      .update(this.collection, this.id, this.data)
+      .then((response) => {
+        this.data = response.data;
+        this.full = response;
+        if (callback) {
+          callback(response);
+        }
+        return response;
+      });
+  },
+
 };
 
 module.exports = Collections;
