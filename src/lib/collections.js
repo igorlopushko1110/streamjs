@@ -319,6 +319,29 @@ CollectionEntry.prototype = {
         return response;
       });
   },
+  
+  delete: function(callback) {
+    /**
+     * Delete item from collection
+     * @method delete
+     * @memberof CollectionEntry.prototype
+     * @param  {requestCallback} callback Callback to call on completion
+     * @return {Promise} Promise object
+     * @example collection.delete("cheese101")
+     */
+    return this.store.delete(this.collection, this.id).then((response) => {
+      this.data = null;
+      this.full = null;
+      if (callback) {
+        callback(response);
+      }
+      return response;
+    });
+  },
+  
+  };
+
+module.exports = Collections;
 
 };
 
