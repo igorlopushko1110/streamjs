@@ -158,6 +158,122 @@ StreamFeed.prototype = {
     );
     return xhr;
   },
+  
+  follow: function(targetSlug, targetUserId, options, callback) {
+    /**
+     * Follows the given target feed
+     * @method follow
+     * @memberof StreamFeed.prototype
+     * @param  {string}   targetSlug   Slug of the target feed
+     * @param  {string}   targetUserId User identifier of the target feed
+     * @param  {object}   options      Additional options
+     * @param  {number}   options.activityCopyLimit Limit the amount of activities copied over on follow
+     * @param  {requestCallback} callback     Callback to call on completion
+     * @return {Promise}  Promise object
+     * @example feed.follow('user', '1');
+     * @example feed.follow('user', '1', callback);
+     * @example feed.follow('user', '1', options, callback);
+     */
+    if (targetUserId instanceof StreamUser) {
+      targetUserId = targetUserId.id;
+    }
+    utils.validateFeedSlug(targetSlug);
+    utils.validateUserId(targetUserId);
+
+    var activityCopyLimit;
+    var last = arguments[arguments.length - 1];
+    // callback is always the last argument
+    callback = last.call ? last : undefined;
+    var target = targetSlug + ':' + targetUserId;
+
+    // check for additional options
+    if (options && !options.call) {
+      if (typeof options.limit !== 'undefined' && options.limit !== null) {
+        activityCopyLimit = options.limit;
+      }
+    }
+
+    var body = {
+      target: target,
+    };
+
+    if (
+      typeof activityCopyLimit !== 'undefined' &&
+      activityCopyLimit !== null
+    ) {
+      body['activity_copy_limit'] = activityCopyLimit;
+    }
+
+    return this.client.post(
+      {
+        url: 'feed/' + this.feedUrl + '/following/',
+        body: body,
+        signature: this.signature,
+      },
+      callback,
+    );
+  },
+
+  unfollow: function(targetSlug, targetUserId, optionsOrCallback, callback) {
+    /**
+     * Unfollow the given feed
+     * @method unfollow
+     * @memberof StreamFeed.prototype
+     * @param  {string}   targetSlug   Slug of the target feed
+     * @param  {string}   targetUserId [description]
+     * @param  {requestCallback|object} optionsOrCallback
+     * @param  {boolean}  optionOrCallback.keepHistory when provided the activities from target
+     *                                                 feed will not be kept in the feed
+     * @param  {requestCallback} callback     Callback to call on completion
+     * @return {object}                XHR request object
+     * @example feed.unfollow('user', '2', callback);
+     */
+    var options = {},
+      qs = {};
+    if (typeof optionsOrCallback === 'function') callback = optionsOrCallback;
+    if (typeof optionsOrCallback === 'object') options = optionsOrCallback;
+    if (typeof options.keepHistory === 'boolean' && options.keepHistory)
+      qs['keep_history'] = '1';
+
+    utils.validateFeedSlug(targetSlug);
+    utils.validateUserId(targetUserId);
+    var targetFeedId = targetSlug + ':' + targetUserId;
+    var xhr = this.client['delete'](
+      {
+        url: 'feed/' + this.feedUrl + '/following/' + targetFeedId + '/',
+        qs: qs,
+        signature: this.signature,
+      },
+      callback,
+    );
+    return xhr;
+  },
+
+  following: function(options, callback) {
+    /**
+     * List which feeds this feed is following
+     * @method following
+     * @memberof StreamFeed.prototype
+     * @param  {object}   options  Additional options
+     * @param  {string}   options.filter Filter to apply on search operation
+     * @param  {requestCallback} callback Callback to call on completion
+     * @return {Promise} Promise object
+     * @example feed.following({limit:10, filter: ['user:1', 'user:2']}, callback);
+     */
+    if (options !== undefined && options.filter) {
+      options.filter = options.filter.join(',');
+    }
+
+    return this.client.get(
+      {
+        url: 'feed/' + this.feedUrl + '/following/',
+        qs: options,
+        signature: this.signature,
+      },
+      callback,
+    );
+  },
+
 };
 
 module.exports = StreamFeed;
