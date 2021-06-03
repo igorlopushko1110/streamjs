@@ -80,7 +80,84 @@ StreamFeed.prototype = {
     this.enrichByDefault = false;
   },
 
-  
+  addActivity: function(activity, callback) {
+    /**
+     * Adds the given activity to the feed and
+     * calls the specified callback
+     * @method addActivity
+     * @memberof StreamFeed.prototype
+     * @param {object} activity - The activity to add
+     * @param {requestCallback} callback - Callback to call on completion
+     * @return {Promise} Promise object
+     */
+
+    activity = replaceStreamObjects(activity);
+    if (!activity.actor && this.client.currentUser) {
+      activity.actor = this.client.currentUser._streamRef();
+    }
+
+    return this.client.post(
+      {
+        url: 'feed/' + this.feedUrl + '/',
+        body: activity,
+        signature: this.signature,
+      },
+      callback,
+    );
+  },
+
+  removeActivity: function(activityId, callback) {
+    /**
+     * Removes the activity by activityId
+     * @method removeActivity
+     * @memberof StreamFeed.prototype
+     * @param  {string}   activityId Identifier of activity to remove
+     * @param  {requestCallback} callback   Callback to call on completion
+     * @return {Promise} Promise object
+     * @example
+     * feed.removeActivity(activityId);
+     * @example
+     * feed.removeActivity({'foreignId': foreignId});
+     */
+    var identifier = activityId.foreignId ? activityId.foreignId : activityId;
+    var params = {};
+    if (activityId.foreignId) {
+      params['foreign_id'] = '1';
+    }
+
+    return this.client['delete'](
+      {
+        url: 'feed/' + this.feedUrl + '/' + identifier + '/',
+        qs: params,
+        signature: this.signature,
+      },
+      callback,
+    );
+  },
+
+  addActivities: function(activities, callback) {
+    /**
+     * Adds the given activities to the feed and calls the specified callback
+     * @method addActivities
+     * @memberof StreamFeed.prototype
+     * @param  {Array}   activities Array of activities to add
+     * @param  {requestCallback} callback   Callback to call on completion
+     * @return {Promise}               XHR request object
+     */
+    activities = replaceStreamObjects(activities);
+    var data = {
+      activities: activities,
+    };
+    var xhr = this.client.post(
+      {
+        url: 'feed/' + this.feedUrl + '/',
+        body: data,
+        signature: this.signature,
+      },
+      callback,
+    );
+    return xhr;
+  },
 };
 
 module.exports = StreamFeed;
