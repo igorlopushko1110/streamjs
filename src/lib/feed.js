@@ -337,7 +337,44 @@ StreamFeed.prototype = {
       callback,
     );
   },
+getReadOnlyToken: function() {
+    /**
+     * Returns a token that allows only read operations
+     *
+     * @deprecated since version 4.0
+     * @method getReadOnlyToken
+     * @memberof StreamClient.prototype
+     * @param {string} feedSlug - The feed slug to get a read only token for
+     * @param {string} userId - The user identifier
+     * @return {string} token
+     * @example
+     * client.getReadOnlyToken('user', '1');
+     */
+    var feedId = '' + this.slug + this.userId;
+    return signing.JWTScopeToken(this.client.apiSecret, '*', 'read', {
+      feedId: feedId,
+      expireTokens: this.client.expireTokens,
+    });
+  },
 
+  getReadWriteToken: function() {
+    /**
+     * Returns a token that allows read and write operations
+     * @deprecated since version 4.0
+     * @method getReadWriteToken
+     * @memberof StreamClient.prototype
+     * @param {string} feedSlug - The feed slug to get a read only token for
+     * @param {string} userId - The user identifier
+     * @return {string} token
+     * @example
+     * client.getReadWriteToken('user', '1');
+     */
+    var feedId = '' + this.slug + this.userId;
+    return signing.JWTScopeToken(this.client.apiSecret, '*', '*', {
+      feedId: feedId,
+      expireTokens: this.client.expireTokens,
+    });
+  },
 
 };
 
