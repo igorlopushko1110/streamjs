@@ -273,6 +273,71 @@ StreamFeed.prototype = {
       callback,
     );
   },
+  
+  followers: function(options, callback) {
+    /**
+     * List the followers of this feed
+     * @method followers
+     * @memberof StreamFeed.prototype
+     * @param  {object}   options  Additional options
+     * @param  {string}   options.filter Filter to apply on search operation
+     * @param  {requestCallback} callback Callback to call on completion
+     * @return {Promise} Promise object
+     * @example
+     * feed.followers({limit:10, filter: ['user:1', 'user:2']}, callback);
+     */
+    if (options !== undefined && options.filter) {
+      options.filter = options.filter.join(',');
+    }
+
+    return this.client.get(
+      {
+        url: 'feed/' + this.feedUrl + '/followers/',
+        qs: options,
+        signature: this.signature,
+      },
+      callback,
+    );
+  },
+
+  get: function(options, callback) {
+    /**
+     * Reads the feed
+     * @method get
+     * @memberof StreamFeed.prototype
+     * @param  {object}   options  Additional options
+     * @param  {requestCallback} callback Callback to call on completion
+     * @return {Promise} Promise object
+     * @example feed.get({limit: 10, id_lte: 'activity-id'})
+     * @example feed.get({limit: 10, mark_seen: true})
+     */
+    var path;
+
+    if (options && options['mark_read'] && options['mark_read'].join) {
+      options['mark_read'] = options['mark_read'].join(',');
+    }
+
+    if (options && options['mark_seen'] && options['mark_seen'].join) {
+      options['mark_seen'] = options['mark_seen'].join(',');
+    }
+
+    this.client.replaceReactionOptions(options);
+    if (this.client.shouldUseEnrichEndpoint(options)) {
+      path = 'enrich/feed/';
+    } else {
+      path = 'feed/';
+    }
+
+    return this.client.get(
+      {
+        url: path + this.feedUrl + '/',
+        qs: options,
+        signature: this.signature,
+      },
+      callback,
+    );
+  },
+
 
 };
 
